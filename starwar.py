@@ -2,7 +2,9 @@
 # -*- coding: utf8 -*-
 
 import pygame
+
 import random
+
 import os
 
 
