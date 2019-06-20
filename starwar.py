@@ -11,7 +11,7 @@ scr_size_y = 500    # размер окна по у
 image_dir = os.path.dirname(__file__) + "/img/"  # путь к каталогу с изображениями
 speed = 10  # скорость корабля
 ekilled = 0
-
+i = scr_size_y // 10 / 8
 
 # класс для определения звёзд
 class cl_star():
@@ -71,10 +71,15 @@ class cl_bullet():
         self.color = color
         self.facing = facing
         self.vel = 10 * facing
+        self.number = 0
 
     def draw(self, win):
-        win.blit(shoot3_sprite, (self.x - shoot3_sprite.get_width() // 2,
-                                 self.y - shoot3_sprite.get_height() // 2))
+        if self.number == 8*i-1:
+            self.number = 0
+        else:
+            self.number += 1
+        win.blit(shoots[self.number//i], (self.x - shoots[self.number//i].get_width() // 2,
+                                 self.y - shoots[self.number//i].get_height() // 2))
 
 #    def size(self):
 #        return {'w':shoot3_sprite.get_width(),'h':shoot3_sprite.get_height()}
@@ -97,15 +102,18 @@ def drawWindow(explode):
     pygame.display.update()
 
 
-
+shoots = []     # массив спрайтов выстрелов
 #основная программа
 win = initAll()
 ship_img = pygame.image.load(image_dir + 'kosmolet.png')    # изображене корабля
 enemy_img = pygame.image.load(image_dir + 'enemy.png')      # изображене врага
-shoot3_img = pygame.image.load(image_dir + 'fire3.png')     # изображене пули
+for counter in range(8):
+    shoot_img = pygame.image.load(image_dir + 'fire' + str(counter + 1) + '.png')
+    shoot_spr = pygame.transform.scale(shoot_img, (shoot_img.get_width() // 2,
+                                        shoot_img.get_height() // 2))
+    shoots.append(pygame.transform.rotate(shoot_spr, 90))    # спрайт пули
 explosion_img = pygame.image.load(image_dir + 'explosion.png')      # изображене взрыва
-shoot3_sprite = pygame.transform.scale(shoot3_img, (shoot3_img.get_width() // 2,
-                                        shoot3_img.get_height() // 2))    # спрайт пули
+
 ship_sprite = pygame.transform.scale(ship_img, (ship_img.get_width() // 40,   # спрайт корабля
                                         ship_img.get_height() // 40))
 enemy_sprite = pygame.transform.scale(enemy_img, (enemy_img.get_width() // 9,
@@ -203,5 +211,5 @@ text1 = f1.render('Game Over', 1, (255, 255, 255))
 win.blit(text1, (scr_size_x // 2, scr_size_y // 2))
 pygame.display.update()
 
-pygame.time.delay(10000)
+pygame.time.delay(1000)
 pygame.quit()
