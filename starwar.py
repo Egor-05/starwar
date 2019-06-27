@@ -12,6 +12,7 @@ image_dir = os.path.dirname(__file__) + "/img/"  # путь к каталогу 
 speed = 10  # скорость корабля
 ekilled = 0
 i = scr_size_y // 10 / 8
+number = 0
 
 # класс для определения звёзд
 class cl_star():
@@ -50,18 +51,6 @@ class cl_enemy():
             return False
 
 
-#class cl_ebullet():
- #   def __init__(self, x, y, radius, color, facing):
-  #      self.x = x
-   #     self.y = y
-    #    self.radius = radius
-     #   self.color = color
-      #  self.facing = facing
-       # self.vel = 10 * facing
-        #def draw(self, win):
-        #pygame.draw.circle(win, self.color,(self.x, self.y), self.radius )
-
-
 # класс для определения пуль
 class cl_bullet():
     def __init__(self, x, y, radius, color, facing):
@@ -74,15 +63,12 @@ class cl_bullet():
         self.number = 0
 
     def draw(self, win):
-        if self.number == 8*i-1:
+        if self.number == 8 * i - 1:
             self.number = 0
         else:
             self.number += 1
         win.blit(shoots[self.number//i], (self.x - shoots[self.number//i].get_width() // 2,
-                                 self.y - shoots[self.number//i].get_height() // 2))
-
-#    def size(self):
-#        return {'w':shoot3_sprite.get_width(),'h':shoot3_sprite.get_height()}
+                                          self.y - shoots[self.number//i].get_height() // 2))
 
 
 # инициализация всего
@@ -92,16 +78,7 @@ def initAll():
     pygame.display.set_caption("Starwars by Egor")
     return win
 
-
-# обновление окна и корабля
-def drawWindow(explode):
-    if explode:
-        win.blit(explosion_sprite, (x, y))
-    else:
-        win.blit(ship_sprite, (x, y))
-    pygame.display.update()
-
-
+exps = []
 shoots = []     # массив спрайтов выстрелов
 #основная программа
 win = initAll()
@@ -111,15 +88,19 @@ for counter in range(8):
     shoot_img = pygame.image.load(image_dir + 'fire' + str(counter + 1) + '.png')
     shoot_spr = pygame.transform.scale(shoot_img, (shoot_img.get_width() // 2,
                                         shoot_img.get_height() // 2))
-    shoots.append(pygame.transform.rotate(shoot_spr, 90))    # спрайт пули
-explosion_img = pygame.image.load(image_dir + 'explosion.png')      # изображене взрыва
+    shoots.append(pygame.transform.rotate(shoot_spr, 90))#спрайт пули
+for counter in range(8):
+    exp_img = pygame.image.load(image_dir + 'exp' + str(counter + 1) + '.png')
+    exp_spr = pygame.transform.scale(exp_img, (exp_img.get_width() // 2,
+                                        exp_img.get_height() // 2))
+    exps.append(exp_spr)    # спрайт взрыва
+#explosion_img = pygame.image.load(image_dir + 'explosion.png')      # изображене взрыва
 
 ship_sprite = pygame.transform.scale(ship_img, (ship_img.get_width() // 40,   # спрайт корабля
                                         ship_img.get_height() // 40))
 enemy_sprite = pygame.transform.scale(enemy_img, (enemy_img.get_width() // 9,
                                         enemy_img.get_height() // 9))     # спрайт врага
-explosion_sprite = pygame.transform.scale(explosion_img, (explosion_img.get_width() // 10,
-                                        explosion_img.get_height() // 10))    # спрайт взрыва
+
 x = scr_size_x / 2      # текущая координата х корабля
 y = scr_size_y - 50     # текущая координата у корабля
 #ebullets = []
@@ -128,7 +109,6 @@ stars = []      # массив объектов звёзд
 enemies = []    # массив объектов врагов
 cycle_counter = 0   # счётчик циклов, используется для вызова паузы между выстрелами
 run = True      # признак продолжения работы программы
-exp = False     # признак изменения спрайта корабля
 while run:
     pygame.time.delay(100)
     cycle_counter += 1
@@ -170,7 +150,6 @@ while run:
 
     for enemy in enemies:
         if enemy.check(x, y):
-            exp = True
             run = False
 
     keys = pygame.key.get_pressed()
@@ -203,8 +182,19 @@ while run:
     f2 = pygame.font.Font(None, 36)
     text2 = f2.render(str(ekilled), 1, (255, 255, 255))
     win.blit(text2, (50, 50))
-    drawWindow(exp)
+    win.blit(ship_sprite, (x, y))
+    pygame.display.update()
 
+for counter in range(8):
+    exp_spr = exps[counter]
+    exp_rect = win.blit(exp_spr, (x - exp_spr.get_width() // 2,
+                                  y - exp_spr.get_height() // 2))
+    pygame.display.update(exp_rect)
+    pygame.time.delay(300)
+    exp_spr.fill((0, 0, 0))
+    exp_rect = win.blit(exp_spr, (x - exp_spr.get_width() // 2,
+                                  y - exp_spr.get_height() // 2))
+    pygame.display.update(exp_rect)
 
 f1 = pygame.font.Font(None, 36)
 text1 = f1.render('Game Over', 1, (255, 255, 255))
