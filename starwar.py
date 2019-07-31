@@ -13,27 +13,64 @@ ekilled = 0
 i = scr_size_y // 10 / 8
 number = 0
 
+
+class ClObj:
+    def __init__(self, x, vel):
+        self.x = x
+        self.vel = vel
+
+    def draw(self):
+        pass
+
+    def fly(self):
+        self.y += self.vel
+
+
+# класс для определения корабля
+class ClShip(ClObj):
+    def __init__(self, x, y, vel):
+        ClObj.__init__(self, x, vel)
+        self.y = y
+
+    def draw(self, win):
+        win.blit(ship_sprite, (self.x, self.y))
+
+    def up(self):
+        if self.y > 5:
+            self.y -= self.vel
+
+    def down(self):
+        if self.y < scr_size_y - ship_sprite.get_height():
+            self.y += self.vel
+
+    def left(self):
+        if self.x > 5:
+            self.x -= self.vel
+
+    def right(self):
+        if self.x < scr_size_x - ship_sprite.get_width():
+            self.x += self.vel
+
+
 # класс для определения звёзд
-class cl_star():
+class ClStar(ClObj):
 
     def __init__(self, x, radius, color):
-        self.x = x
+        ClObj.__init__(self, x, random.randint(3, 10))
         self.y = 0
         self.radius = radius
         self.color = color
-        self.vel = random.randint(3, 10)
 
     def draw(self, win):
         pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
 
 
 # класс для определения врага
-class cl_enemy():
+class ClEnemy(ClObj):
 
     def __init__(self, x):
-        self.x = x
+        ClObj.__init__(self, x, 6)
         self.y = 0
-        self.vel = 6
 
     def draw(self, win):    # отрисовка
         # pygame.draw.rect(win, self.color,(self.x - 15, self.y - 15, 30, 30))
@@ -51,14 +88,12 @@ class cl_enemy():
 
 
 # класс для определения пуль
-class cl_bullet():
-    def __init__(self, x, y, radius, color, facing):
-        self.x = x
+class ClBullet(ClObj):
+    def __init__(self, x, y, radius, color):
+        ClObj.__init__(self, x, -10)
         self.y = y
         self.radius = radius
         self.color = color
-        self.facing = facing
-        self.vel = 10 * facing
         self.number = 0
 
     def draw(self, win):
@@ -76,6 +111,15 @@ def initAll():
     win = pygame.display.set_mode((scr_size_x, scr_size_y))     # объект окно
     pygame.display.set_caption("Starwars by Egor")
     return win
+
+
+def fly_obj(arr_obj):
+    for obj in arr_obj:
+        if scr_size_y >= obj.y >= 0:
+            obj.fly()
+            obj.draw(win)
+        else:
+            arr_obj.pop(arr_obj.index(obj))
 
 
 exps = []
@@ -100,15 +144,12 @@ ship_sprite = pygame.transform.scale(ship_img, (ship_img.get_width() // 40,   # 
                                         ship_img.get_height() // 40))
 enemy_sprite = pygame.transform.scale(enemy_img, (enemy_img.get_width() // 9,
                                         enemy_img.get_height() // 9))     # спрайт врага
-
-x = scr_size_x / 2      # текущая координата х корабля
-y = scr_size_y - 50     # текущая координата у корабля
-#ebullets = []
 bullets = []    # массив объектов пуль
 stars = []      # массив объектов звёзд
 enemies = []    # массив объектов врагов
 cycle_counter = 0   # счётчик циклов, используется для вызова паузы между выстрелами
 run = True      # признак продолжения работы программы
+ship = ClShip(scr_size_x / 2, scr_size_y - 50, speed)
 while run:
     pygame.time.delay(100)
     cycle_counter += 1
@@ -116,30 +157,14 @@ while run:
         if event.type == pygame.QUIT:
             run = False
 
-    for star in stars:
-        if star.y <= scr_size_y and star.y >= 0:
-            star.y += star.vel
-        else:
-            stars.pop(stars.index(star))
-
-    for enemy in enemies:
-        if enemy.y <= scr_size_y and enemy.y >= 0:
-            enemy.y += enemy.vel
-        else:
-            enemies.pop(enemies.index(enemy))
+    win.fill((0, 0, 0))
 
     if len(stars) < 35:
-        stars.append(cl_star(random.randint(0, scr_size_x),
-                             random.randint(1, 5), (255, 255, 0)))
+        stars.append(ClStar(random.randint(0, scr_size_x),
+                            random.randint(1, 5), (255, 255, 0)))
 
     if len(enemies) < 3:
-        enemies.append(cl_enemy(random.randint(0, scr_size_x)))
-
-    for bullet in bullets:
-        if bullet.y < scr_size_y and bullet.y > 0:
-            bullet.y += bullet.vel
-        else:
-            bullets.pop(bullets.index(bullet))
+        enemies.append(ClEnemy(random.randint(0, scr_size_x)))
 
     for bullet in bullets:
         for enemy in enemies:
@@ -148,52 +173,46 @@ while run:
                 enemies.pop(enemies.index(enemy))
                 ekilled += 1
 
+    fly_obj(stars)
+    fly_obj(enemies)
+    fly_obj(bullets)
+
     for enemy in enemies:
-        if enemy.check(x, y):
+        if enemy.check(ship.x, ship.y):
             run = False
 
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and x > 5:
-        x -= speed
-    if keys[pygame.K_RIGHT] and x < scr_size_x - ship_sprite.get_width():
-        x += speed
-    if keys[pygame.K_UP] and y > 5:
-        y -= speed
-    if keys[pygame.K_DOWN] and y < scr_size_y - ship_sprite.get_height():
-        y += speed
+    if keys[pygame.K_LEFT]:
+        ship.left()
+    if keys[pygame.K_RIGHT]:
+        ship.right()
+    if keys[pygame.K_UP]:
+        ship.up()
+    if keys[pygame.K_DOWN]:
+        ship.down()
     if keys[pygame.K_SPACE]:
-        facing = -1
         if len(bullets) < 10 and cycle_counter > 5:
             cycle_counter = 0
-            bullets.append(cl_bullet(x + ship_sprite.get_width() // 2,
-                                     y + ship_sprite.get_height() // 2,
-                                     3, (0, 0, 255), facing))
+            bullets.append(ClBullet(ship.x + ship_sprite.get_width() // 2,
+                                    ship.y + ship_sprite.get_height() // 2,
+                                    3, (0, 0, 255)))
 
-    win.fill((0, 0, 0))
-
-    for bullet in bullets:
-        bullet.draw(win)
-
-    for star in stars:
-        star.draw(win)
-
-    for enemy in enemies:
-        enemy.draw(win)
     f2 = pygame.font.Font(None, 36)
     text2 = f2.render(str(ekilled), 1, (255, 255, 255))
     win.blit(text2, (50, 50))
-    win.blit(ship_sprite, (x, y))
+    ship.draw(win)
+
     pygame.display.update()
 
 for counter in range(8):
     exp_spr = exps[counter]
-    exp_rect = win.blit(exp_spr, (x - exp_spr.get_width() // 2,
-                                  y - exp_spr.get_height() // 2))
+    exp_rect = win.blit(exp_spr, (ship.x - exp_spr.get_width() // 2,
+                                  ship.y - exp_spr.get_height() // 2))
     pygame.display.update(exp_rect)
     pygame.time.delay(300)
     exp_spr.fill((0, 0, 0))
-    exp_rect = win.blit(exp_spr, (x - exp_spr.get_width() // 2,
-                                  y - exp_spr.get_height() // 2))
+    exp_rect = win.blit(exp_spr, (ship.x - exp_spr.get_width() // 2,
+                                  ship.y - exp_spr.get_height() // 2))
     pygame.display.update(exp_rect)
 
 f1 = pygame.font.Font(None, 36)
