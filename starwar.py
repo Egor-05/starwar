@@ -1,4 +1,3 @@
-#!/usr/bin/python
 # -*- coding: utf8 -*-
 
 import pygame
@@ -67,8 +66,8 @@ class cl_bullet():
             self.number = 0
         else:
             self.number += 1
-        win.blit(shoots[self.number//i], (self.x - shoots[self.number//i].get_width() // 2,
-                                          self.y - shoots[self.number//i].get_height() // 2))
+        shoot = shoots[int(self.number//i)]
+        win.blit(shoot, (self.x - shoot.get_width() // 2, self.y - shoot.get_height() // 2))
 
 
 # инициализация всего
@@ -78,9 +77,10 @@ def initAll():
     pygame.display.set_caption("Starwars by Egor")
     return win
 
+
 exps = []
 shoots = []     # массив спрайтов выстрелов
-#основная программа
+# основная программа
 win = initAll()
 ship_img = pygame.image.load(image_dir + 'kosmolet.png')    # изображене корабля
 enemy_img = pygame.image.load(image_dir + 'enemy.png')      # изображене врага
@@ -88,13 +88,13 @@ for counter in range(8):
     shoot_img = pygame.image.load(image_dir + 'fire' + str(counter + 1) + '.png')
     shoot_spr = pygame.transform.scale(shoot_img, (shoot_img.get_width() // 2,
                                         shoot_img.get_height() // 2))
-    shoots.append(pygame.transform.rotate(shoot_spr, 90))#спрайт пули
+    shoots.append(pygame.transform.rotate(shoot_spr, 90))  # спрайт пули
 for counter in range(8):
     exp_img = pygame.image.load(image_dir + 'exp' + str(counter + 1) + '.png')
     exp_spr = pygame.transform.scale(exp_img, (exp_img.get_width() // 2,
                                         exp_img.get_height() // 2))
     exps.append(exp_spr)    # спрайт взрыва
-#explosion_img = pygame.image.load(image_dir + 'explosion.png')      # изображене взрыва
+# explosion_img = pygame.image.load(image_dir + 'explosion.png')      # изображене взрыва
 
 ship_sprite = pygame.transform.scale(ship_img, (ship_img.get_width() // 40,   # спрайт корабля
                                         ship_img.get_height() // 40))
