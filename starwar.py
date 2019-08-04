@@ -8,6 +8,7 @@ import os
 scr_size_x = 750    # размер окна по х
 scr_size_y = 500    # размер окна по у
 image_dir = os.path.dirname(__file__) + "/img/"  # путь к каталогу с изображениями
+sound_dir = os.path.dirname(__file__) + "/sound/"  # путь к каталогу со звуком
 speed = 10  # скорость корабля
 ekilled = 0
 i = scr_size_y // 10 / 8
@@ -19,7 +20,7 @@ class ClObj:
         self.x = x
         self.vel = vel
 
-    def draw(self):
+    def draw(self, win):
         pass
 
     def fly(self):
@@ -73,7 +74,6 @@ class ClEnemy(ClObj):
         self.y = 0
 
     def draw(self, win):    # отрисовка
-        # pygame.draw.rect(win, self.color,(self.x - 15, self.y - 15, 30, 30))
         win.blit(enemy_sprite, (self.x - enemy_sprite.get_width() // 2,
                                 self.y - enemy_sprite.get_height() // 2))
 
@@ -107,6 +107,7 @@ class ClBullet(ClObj):
 
 # инициализация всего
 def initAll():
+    pygame.mixer.pre_init(44100, 16, 2, 384)
     pygame.init()
     win = pygame.display.set_mode((scr_size_x, scr_size_y))     # объект окно
     pygame.display.set_caption("Starwars by Egor")
@@ -127,29 +128,30 @@ shoots = []     # массив спрайтов выстрелов
 # основная программа
 win = initAll()
 ship_img = pygame.image.load(image_dir + 'kosmolet.png')    # изображене корабля
+shot = pygame.mixer.Sound(sound_dir + 'shot.wav')          # звук выстрелая
 enemy_img = pygame.image.load(image_dir + 'enemy.png')      # изображене врага
+pygame.mixer.music.load(sound_dir + 'music.wav')
 for counter in range(8):
     shoot_img = pygame.image.load(image_dir + 'fire' + str(counter + 1) + '.png')
     shoot_spr = pygame.transform.scale(shoot_img, (shoot_img.get_width() // 2,
-                                        shoot_img.get_height() // 2))
+                                                   shoot_img.get_height() // 2))
     shoots.append(pygame.transform.rotate(shoot_spr, 90))  # спрайт пули
 for counter in range(8):
     exp_img = pygame.image.load(image_dir + 'exp' + str(counter + 1) + '.png')
     exp_spr = pygame.transform.scale(exp_img, (exp_img.get_width() // 2,
-                                        exp_img.get_height() // 2))
+                                               exp_img.get_height() // 2))
     exps.append(exp_spr)    # спрайт взрыва
-# explosion_img = pygame.image.load(image_dir + 'explosion.png')      # изображене взрыва
-
 ship_sprite = pygame.transform.scale(ship_img, (ship_img.get_width() // 40,   # спрайт корабля
-                                        ship_img.get_height() // 40))
+                                                ship_img.get_height() // 40))
 enemy_sprite = pygame.transform.scale(enemy_img, (enemy_img.get_width() // 9,
-                                        enemy_img.get_height() // 9))     # спрайт врага
+                                                  enemy_img.get_height() // 9))     # спрайт врага
 bullets = []    # массив объектов пуль
 stars = []      # массив объектов звёзд
 enemies = []    # массив объектов врагов
 cycle_counter = 0   # счётчик циклов, используется для вызова паузы между выстрелами
 run = True      # признак продолжения работы программы
 ship = ClShip(scr_size_x / 2, scr_size_y - 50, speed)
+pygame.mixer.music.play()
 while run:
     pygame.time.delay(100)
     cycle_counter += 1
@@ -161,8 +163,8 @@ while run:
 
     if len(stars) < 35:
         stars.append(ClStar(random.randint(0, scr_size_x),
-                            random.randint(1, 5), (255, 255, 0)))
-
+                            random.randint(1, 5),
+                            (255, 255, 0)))
     if len(enemies) < 3:
         enemies.append(ClEnemy(random.randint(0, scr_size_x)))
 
@@ -196,14 +198,16 @@ while run:
             bullets.append(ClBullet(ship.x + ship_sprite.get_width() // 2,
                                     ship.y + ship_sprite.get_height() // 2,
                                     3, (0, 0, 255)))
+            pygame.mixer.Sound.play(shot)
+    ship.draw(win)
 
     f2 = pygame.font.Font(None, 36)
     text2 = f2.render(str(ekilled), 1, (255, 255, 255))
     win.blit(text2, (50, 50))
-    ship.draw(win)
 
     pygame.display.update()
 
+# конец игры
 for counter in range(8):
     exp_spr = exps[counter]
     exp_rect = win.blit(exp_spr, (ship.x - exp_spr.get_width() // 2,
